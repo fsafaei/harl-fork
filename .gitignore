@@ -414,3 +414,15 @@ Sessionx.vim
 tags
 # Persistent undo
 [._]*.un~
+
+# AI-tooling hygiene — never commit local agent artefacts
+CLAUDE.md
+.claude/
+.cowork/
+.anthropic/
+.agent-sessions/
+.cursor/
+.aider*
+.windsurf/
+.continuedev/
+*.session.jsonl

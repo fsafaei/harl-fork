@@ -1,0 +1,18 @@
+HARL — Heterogeneous-Agent Reinforcement Learning
+
+This repository is a fork of PKU-MARL/HARL
+(https://github.com/PKU-MARL/HARL), originally licensed under
+the MIT License. The MIT License terms (declared by upstream in
+setup.py and reproduced in the LICENSE file at the root of this
+repository) continue to apply to inherited files.
+
+Modifications by CONCERTO Contributors, copyright 2026, are
+licensed under the Apache License, Version 2.0. You may
+obtain a copy of the Apache License at:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Files modified or added by CONCERTO Contributors carry an
+SPDX-License-Identifier: Apache-2.0 header. Files inherited
+from upstream PKU-MARL/HARL retain their original MIT
+licensing terms.
