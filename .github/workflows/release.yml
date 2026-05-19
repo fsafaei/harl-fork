@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  # Manual re-fire for republishing an already-tagged release to
+  # TestPyPI (e.g. recovering from a transient publish failure
+  # without rotating the tag).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to republish to TestPyPI (e.g. v0.1.0).'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release-please:
+    # Skipped on workflow_dispatch — that path only republishes an
+    # already-tagged release.
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7  # v5.0.0
+        id: release
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          release-type: python
+          package-name: harl-aht
+
+  publish:
+    runs-on: ubuntu-latest
+    needs: release-please
+    if: |
+      always() && (
+        needs.release-please.outputs.release_created == 'true'
+        || github.event_name == 'workflow_dispatch'
+      )
+    permissions:
+      id-token: write  # PyPI trusted publishing (OIDC, no long-lived token)
+    env:
+      PUBLISH_TAG: ${{ github.event.inputs.tag || needs.release-please.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ env.PUBLISH_TAG }}
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          python-version: "3.11"
+      # v0.x → TestPyPI; promote to real PyPI at v1.x (same split as
+      # the CONCERTO release workflow). Requires the TestPyPI-side
+      # trusted-publisher mapping for this repo + workflow file.
+      - run: uv build
+      - run: uv publish --publish-url https://test.pypi.org/legacy/ --trusted-publishing always

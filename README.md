@@ -2,7 +2,31 @@
   <img src="./assets/harl_logo.jpg" width="300px" height="auto"/>
 </div>
 
-<h1 align="center"> Heterogeneous-Agent Reinforcement Learning </h1>
+<h1 align="center"> Heterogeneous-Agent Reinforcement Learning — CONCERTO fork </h1>
+
+> **About this fork.** This is a CONCERTO fork of
+> [PKU-MARL/HARL](https://github.com/PKU-MARL/HARL) at upstream commit
+> [`b1af98b`](https://github.com/PKU-MARL/HARL/commit/b1af98b0dbab72a2eee9d160751cd09aedbb8ce2)
+> (tagged here as [`v0.0.0-vendored`](https://github.com/fsafaei/harl-fork/releases/tag/v0.0.0-vendored)).
+> The fork adds the **ego-AHT (ad-hoc teamwork) wrapper** required by
+> [CONCERTO](https://github.com/fsafaei/concerto) — a frozen-partner
+> HAPPO actor, a Hydra-driven runner, and a CONCERTO env adapter — on
+> top of the unmodified upstream tree. The AHT delta is the single
+> commit [`v0.1.0-aht`](https://github.com/fsafaei/harl-fork/releases/tag/v0.1.0-aht).
+>
+> **Install (consumer-side).** `pip install harl-aht` pulls the wheel
+> from PyPI; `import harl` resolves to this fork's tree. The
+> distribution name is `harl-aht` to disambiguate from unreleased
+> upstream `harl` and to signal the AHT delta; the import path remains
+> `harl` for source compatibility with upstream-targeted code.
+>
+> **Licensing.** Upstream files retain their MIT licensing
+> (`LICENSE`). The CONCERTO-added files in the `v0.1.0-aht` delta are
+> Apache-2.0 licensed (`NOTICE` + SPDX headers). See ADR-001 in the
+> CONCERTO repo for the fork-vs-build rationale and ADR-002 for the
+> RL-framework decision that motivated the fork.
+
+---
 
 This repository contains the **official implementation** of **Heterogeneous-Agent Reinforcement Learning (HARL)** algorithms, including **HAPPO**, **HATRPO**, **HAA2C**, **HADDPG**, **HATD3**, **HAD3QN**, and **HASAC**, based on PyTorch. ***HARL algorithms are markedly different from MAPPO in that they are generally applicable to heterogeneous agents and are supported by rigorous theories, often achieving superior performance.*** This repository allows researchers and practitioners to easily reproduce our results on seven challenging benchmarks or apply HARL algorithms to their intended applications.
 
