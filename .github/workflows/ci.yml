@@ -20,13 +20,16 @@ jobs:
       # (hatchling). Catches packaging regressions before they reach
       # the release workflow.
       - run: uv build
-      - run: uv pip install --system dist/*.whl
-      # Smoke-test the installed wheel: the import path is `harl`
-      # (distribution name is `harl-aht`, see README "About this
-      # fork"). The two ego-AHT modules are the v0.1.0-aht delta
+      # setup-uv's Python interpreter is externally-managed (uv refuses
+      # to mutate it), so install into a dedicated venv instead of
+      # `--system`. Smoke-tests the installed wheel: the import path
+      # is `harl` (distribution name is `harl-aht`, see README "About
+      # this fork"). The five modules below are the v0.1.0-aht delta
       # surface that downstream CONCERTO consumes.
+      - run: uv venv .venv-smoke
+      - run: uv pip install --python .venv-smoke/bin/python dist/*.whl
       - run: |
-          python -c "
+          .venv-smoke/bin/python -c "
           import harl
           import harl.algorithms.actors.happo
           import harl.algorithms.actors.ego_aht_happo
