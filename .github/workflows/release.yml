@@ -5,13 +5,19 @@ on:
     branches: [main]
   # Manual re-fire for republishing an already-tagged release to
   # TestPyPI (e.g. recovering from a transient publish failure
-  # without rotating the tag).
+  # without rotating the tag), or — with publish_pypi=true — for
+  # promoting an already-tagged release to production PyPI.
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Existing tag to republish to TestPyPI (e.g. v0.1.0).'
+        description: 'Existing tag to publish (e.g. v0.1.0).'
         required: true
         type: string
+      publish_pypi:
+        description: 'Publish to production PyPI instead of TestPyPI.'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -42,7 +48,7 @@ jobs:
     if: |
       always() && (
         needs.release-please.outputs.release_created == 'true'
-        || github.event_name == 'workflow_dispatch'
+        || (github.event_name == 'workflow_dispatch' && !inputs.publish_pypi)
       )
     permissions:
       id-token: write  # PyPI trusted publishing (OIDC, no long-lived token)
@@ -55,8 +61,37 @@ jobs:
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
         with:
           python-version: "3.11"
-      # v0.x → TestPyPI; promote to real PyPI at v1.x (same split as
-      # the CONCERTO release workflow). Requires the TestPyPI-side
+      # Policy (amended 2026-06-11; supersedes "v0.x → TestPyPI,
+      # promote to real PyPI at v1.x"): automated releases and default
+      # manual re-fires still land on TestPyPI, but production PyPI
+      # publishing is now available at v0.x via the publish-pypi job
+      # below. Reason: CONCERTO's release resolvability gate
+      # (concerto#224) requires harl-aht to be installable from
+      # pypi.org, and a TestPyPI-only package leaves the name exposed
+      # to squatting / dependency confusion. Requires the TestPyPI-side
       # trusted-publisher mapping for this repo + workflow file.
       - run: uv build
       - run: uv publish --publish-url https://test.pypi.org/legacy/ --trusted-publishing always
+
+  publish-pypi:
+    # Production PyPI promotion of an already-tagged release, gated
+    # behind an explicit publish_pypi=true dispatch input and the
+    # "pypi" environment. Deliberately does NOT upload to TestPyPI
+    # first: the tag is already published there, and TestPyPI rejects
+    # filename reuse. The PyPI-side trusted publisher (pending
+    # publisher) pins project=harl-aht, owner=fsafaei,
+    # repo=harl-fork, workflow=release.yml, environment=pypi.
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_pypi
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write  # PyPI trusted publishing (OIDC, no long-lived token)
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          ref: ${{ github.event.inputs.tag }}
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b  # v8.1.0
+        with:
+          python-version: "3.11"
+      - run: uv build
+      - run: uv publish --trusted-publishing always
